@@ -17,7 +17,7 @@ pipeline {
         stage('Run Containers') {
             steps {
                 sh 'docker-compose up -d --no-recreate'
-                sh 'docker-compose down || true'
+                // sh 'docker-compose down || true'
                 // sh 'docker-compose up -d'
             }
         }
