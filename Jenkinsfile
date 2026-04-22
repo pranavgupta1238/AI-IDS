@@ -16,7 +16,7 @@ pipeline {
 
         stage('Run Containers') {
             steps {
-                sh 'docker-compose up -d --no-recreate'
+                sh 'docker-compose -p capstone_project up -d'
                 // sh 'docker-compose down || true'
                 // sh 'docker-compose up -d'
             }
