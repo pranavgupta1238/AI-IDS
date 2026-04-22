@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI IDS Dashboard</title>
+
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: Arial;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #38bdf8;
+    }
+
+    #status {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      text-align: center;
+      /* padding: 10px; */
+      border-bottom: 1px solid #334155;
+    }
+
+    th {
+      padding: 10px;
+      color: #ccc;
+      background: #1e293b;
+    }
+
+    td {
+      padding: 8px;
+      color: #eee;
+    }
+
+    tr:hover {
+      background: #334155;
+    }
+
+    .attack {
+      color: red;
+      font-weight: bold;
+    }
+
+    .normal {
+      color: lightgreen;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🛡️ AI Intrusion Detection System</h1>
+
+<h2 id="status">Loading...</h2>
+
+<table>
+  <tr>
+    <th>Time</th>
+    <th>Source IP</th>
+    <th>Destination IP</th>
+    <th>Connection Duration</th>
+    <th>Port</th>
+  </tr>
+
+  {% for log in logs %}
+  <tr>
+    <td>{{ log.time }}</td>
+    <td>{{ log.src }}</td>
+    <td>{{ log.dst }}</td>
+    <td>{{ log.duration }} sec</td>
+    <td>{{ log.port }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<script>
+  setInterval(() => {
+    fetch("/status")
+      .then(res => res.json())
+      .then(data => {
+        const el = document.getElementById("status");
+        el.innerText = data.status;
+
+        if (data.status.includes("Attack")) {
+          el.className = "attack";
+        } else {
+          el.className = "normal";
+        }
+      });
+  }, 2000);
+
+</script>
+
+</body>
+</html>

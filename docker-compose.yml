@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  zeek:
+    image: zeek/zeek:latest
+    container_name: zeek
+    # network_mode: "host"
+    volumes:
+      - ./zeek/logs:/logs
+    command: zeek -i eth0
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+  app:
+    build: ./app
+    container_name: ai_ids_app
+    ports:
+      - "8000:5000"
+    volumes:
+      - ./zeek/logs:/logs
+      - ./app:/app
+    depends_on:
+      - zeek
+
+  attacker:
+    build: ./attacker
+    # image: kalilinux/kali-rolling
+    container_name: attacker
+    volumes:
+      - ./zeek/logs:/logs
+    stdin_open: true
+    tty: true
+    # command: >
+    #   bash -c "apt update && apt install -y hping3 && bash"
