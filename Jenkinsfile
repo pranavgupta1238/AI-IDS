@@ -10,13 +10,13 @@ pipeline {
 
         stage('Build Docker') {
             steps {
-                sh 'docker compose build'
+                sh 'docker-compose build'
             }
         }
 
         stage('Run Containers') {
             steps {
-                sh 'docker compose -p capstone_project up -d'
+                sh 'docker-compose -p capstone_project up -d'
                 // sh 'docker-compose down || true'
                 // sh 'docker-compose up -d'
             }
