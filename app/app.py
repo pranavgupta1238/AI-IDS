@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, render_template
-from datetime import datetime
+from datetime import datetime, timezone
 import pandas as pd
+from zoneinfo import ZoneInfo
+
 import os
 
 app = Flask(__name__)
@@ -21,7 +23,11 @@ def read_logs():
 
         for _, row in df.iterrows():
             # Convert timestamp
-            timestamp = datetime.fromtimestamp(row[0]).strftime('%Y-%m-%d %H:%M:%S')
+            ts = float(row[0])
+            timestamp = datetime.fromtimestamp(ts, tz=timezone.utc) \
+                .astimezone(ZoneInfo("Asia/Kolkata")) \
+                .strftime('%Y-%m-%d %H:%M:%S')
+            # timestamp = datetime.fromtimestamp(row[0]).strftime('%Y-%m-%d %H:%M:%S')
 
             logs.append({
                 "time": timestamp,
@@ -54,13 +60,13 @@ def detect_attack():
         top_count = src_counts.max()
 
         # Threshold (you can tune this)
-        if top_count > 50:
+        if top_count > 150:
             return f"🚨 Attack Detected from {top_ip}"
         else:
             return "✅ Normal Traffic"
 
     except:
-        return "Processing..."
+        return "✅ Normal Traffic"
 
 @app.route("/")
 def home():

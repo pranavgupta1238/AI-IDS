@@ -2,21 +2,16 @@ version: '3.8'
 
 services:
   zeek:
+    # build: ./zeek
     image: zeek/zeek:latest
     container_name: zeek
     # network_mode: "host"
     volumes:
       - ./zeek/logs:/logs
-    command: >
-      bash -c "
-      while true; do
-        zeek -r /logs/attack.pcap -C Log::default_logdir=/logs;
-        sleep 2;
-      done
-      "
-    # cap_add:
-    #   - NET_ADMIN
-    #   - NET_RAW
+    command: zeek -i eth0
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
 
   app:
     build: ./app
