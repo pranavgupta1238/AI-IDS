@@ -5,4 +5,5 @@ RUN apt-get update && apt-get install -y \
     iputils-ping \
     tcpdump
 
-CMD ["bash"]
+
+CMD bash -c "tcpdump -i eth0 -G 10 -w /logs/attack-%s.pcap & bash"

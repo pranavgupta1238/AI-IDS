@@ -9,7 +9,7 @@ docker-compose up --build
 ### To find app container ip  
 ping ai_ids_app
 
-### Terminal 1 (for capture)
+### Terminal 1 (for capture) (workaround for macos)
 docker exec -it attacker bash  
 tcpdump -i eth0 -w /logs/attack.pcap
 
