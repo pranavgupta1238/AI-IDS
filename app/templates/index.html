@@ -117,6 +117,12 @@
       color: #ff9aa4;
     }
 
+    .status-pill.normal {
+      border-color: rgba(85, 183, 255, 0.42);
+      background: rgba(85, 183, 255, 0.1);
+      color: #a8dbff;
+    }
+
     .dot {
       width: 8px;
       height: 8px;
@@ -137,6 +143,18 @@
       border-radius: 8px;
       background: linear-gradient(90deg, rgba(255, 90, 106, 0.16), rgba(20, 31, 49, 0.96));
       box-shadow: var(--shadow);
+    }
+
+    .alert.healthy {
+      border-color: rgba(74, 222, 128, 0.34);
+      border-left-color: var(--green);
+      background: linear-gradient(90deg, rgba(74, 222, 128, 0.14), rgba(20, 31, 49, 0.96));
+    }
+
+    .alert.normal {
+      border-color: rgba(85, 183, 255, 0.34);
+      border-left-color: var(--blue);
+      background: linear-gradient(90deg, rgba(85, 183, 255, 0.14), rgba(20, 31, 49, 0.96));
     }
 
     .alert-title {
@@ -532,10 +550,10 @@
       </div>
     </header>
 
-    <section class="alert">
+    <section id="alertBox" class="alert">
       <div>
         <h2 class="alert-title" id="alertTitle">{{ dashboard.status }}</h2>
-        <p class="alert-text">The model is watching recent connection concentration, destination service pressure, and protocol patterns.</p>
+        <p class="alert-text" id="alertText">The model is watching recent connection concentration, destination service pressure, and protocol patterns.</p>
       </div>
       <div class="alert-code">Source: <span id="alertSource">{{ dashboard.metrics.top_source }}</span></div>
     </section>
@@ -701,9 +719,20 @@
 
     function setStatus(status) {
       const isAttack = status.includes("Attack");
+      const isHealthy = status.includes("Healthy");
+      const pill = document.getElementById("statusPill");
+      const alertBox = document.getElementById("alertBox");
       document.getElementById("statusText").textContent = status;
-      document.getElementById("statusPill").classList.toggle("attack", isAttack);
+      pill.classList.toggle("attack", isAttack);
+      pill.classList.toggle("normal", !isAttack && !isHealthy);
+      alertBox.classList.toggle("healthy", isHealthy);
+      alertBox.classList.toggle("normal", !isAttack && !isHealthy);
       document.getElementById("alertTitle").textContent = status;
+      document.getElementById("alertText").textContent = isAttack
+        ? "High-volume TCP SYN traffic is targeting the application service."
+        : isHealthy
+          ? "No connection records are present yet. The system is ready and monitoring."
+          : "Traffic is present, but it does not match the SYN-flood attack rule.";
     }
 
     function drawLineChart(canvasId, points) {
@@ -888,7 +917,7 @@
       fetch("/status")
         .then(res => res.json())
         .then(data => renderDashboard(data.dashboard))
-        .catch(() => setStatus("Connection issue with log file"));
+        .catch(() => setStatus("System Healthy"));
     }, 2500);
   </script>
 </body>

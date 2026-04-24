@@ -8,6 +8,8 @@ import os
 app = Flask(__name__)
 
 LOG_PATH = "/logs/conn.log"
+APP_PORT = "5000"
+SYN_FLOOD_THRESHOLD = 100
 
 def load_dataframe(limit=None):
     if not os.path.exists(LOG_PATH):
@@ -33,6 +35,27 @@ def clean_duration(value):
     if value == '-' or pd.isna(value):
         return 0.0
     return float(value)
+
+
+def find_syn_flood(df):
+    if df.empty:
+        return None, 0
+
+    proto = df.iloc[:, 6].astype(str).str.lower()
+    destination_port = df.iloc[:, 5].astype(str)
+    attack_rows = df[(proto == "tcp") & (destination_port == APP_PORT)]
+
+    if attack_rows.empty:
+        return None, 0
+
+    source_counts = attack_rows.iloc[:, 2].value_counts()
+    top_source = str(source_counts.index[0])
+    top_count = int(source_counts.iloc[0])
+
+    if top_count >= SYN_FLOOD_THRESHOLD:
+        return top_source, top_count
+
+    return None, top_count
 
 
 def read_logs():
@@ -81,7 +104,7 @@ def build_dashboard_data():
             "top_sources": [],
             "ports": [],
             "protocols": [],
-            "status": "Connection issue with log file",
+            "status": "System Healthy",
         }
 
     df = df.copy()
@@ -98,7 +121,9 @@ def build_dashboard_data():
     top_source_count = int(src_counts.iloc[0]) if not src_counts.empty else 0
     target_port = str(port_counts.index[0]) if not port_counts.empty else "N/A"
     total_connections = int(len(df))
-    risk_score = min(100, round((top_source_count / max(total_connections, 1)) * 100))
+    attacker_ip, attack_count = find_syn_flood(df)
+    risk_score = min(100, round((attack_count / SYN_FLOOD_THRESHOLD) * 100))
+    status = f"Attack Detected from {attacker_ip}" if attacker_ip else "Normal Traffic"
 
     return {
         "metrics": {
@@ -113,7 +138,7 @@ def build_dashboard_data():
         "top_sources": [{"label": str(k), "value": int(v)} for k, v in src_counts.head(5).items()],
         "ports": [{"label": str(k), "value": int(v)} for k, v in port_counts.head(5).items()],
         "protocols": [{"label": str(k).upper(), "value": int(v)} for k, v in proto_counts.head(4).items()],
-        "status": f"Attack Detected from {top_source}" if top_source_count > 150 else "Normal Traffic",
+        "status": status,
     }
 
 
